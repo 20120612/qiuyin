@@ -1,0 +1,8 @@
+
+<resources>
+    <style name="Theme.QiuyinPet" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#7b5ea7</item>
+        <item name="colorPrimaryVariant">#5b3f8a</item>
+        <item name="colorOnPrimary">#ffffff</item>
+    </style>
+</resources>
