@@ -1,121 +1,213 @@
 package com.qiuyin.pet
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.WindowManager
-import android.webkit.WebSettings
+import android.os.Looper
+import android.view.*
 import android.webkit.WebView
-import android.webkit.JavascriptInterface
+import android.webkit.WebViewClient
+import android.webkit.WebSettings
+import androidx.core.app.NotificationCompat
 
 class OverlayService : Service() {
-    private lateinit var windowManager: WindowManager
-    private lateinit var overlayView: View
-    private lateinit var webView: WebView
-    private lateinit var petEngine: PetEngine
 
-    override fun onCreate() {
-        super.onCreate()
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        createNotificationChannel()
-        startForeground(1, buildNotification())
+    private var windowManager: WindowManager? = null
+    private var overlayView: WebView? = null
+    private var params: WindowManager.LayoutParams? = null
+    private val handler = Handler(Looper.getMainLooper())
 
-        overlayView = LayoutInflater.from(this).inflate(R.layout.activity_main, null)
-        webView = WebView(this)
-        webView.setBackgroundColor(Color.TRANSPARENT)
-        webView.settings.javaScriptEnabled = true
-        webView.settings.allowFileAccess = true
-        webView.loadUrl("file:///android_asset/pet.html")
+    private val appDetector by lazy { AppDetector(this) }
+    private val petEngine by lazy { PetEngine(this, handler) }
 
-        petEngine = PetEngine(this, webView)
-        petEngine.start()
-
-        addOverlay()
-    }
-
-    private fun addOverlay() {
-        val params = WindowManager.LayoutParams(
-            (160 * resources.displayMetrics.density).toInt(),
-            (200 * resources.displayMetrics.density).toInt(),
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT
-        )
-        params.gravity = Gravity.TOP or Gravity.LEFT
-        params.x = 40
-        params.y = 200
-
-        windowManager.addView(webView, params)
-
-        webView.setOnTouchListener(object : View.OnTouchListener {
-            var downX = 0f
-            var downY = 0f
-            var startX = 0f
-            var startY = 0f
-            var isMoving = false
-
-            override fun onTouch(v: View, event: MotionEvent): Boolean {
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        downX = event.rawX
-                        downY = event.rawY
-                        startX = params.x.toFloat()
-                        startY = params.y.toFloat()
-                        isMoving = false
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        val dx = event.rawX - downX
-                        val dy = event.rawY - downY
-                        if (dx > 10 || dy > 10) isMoving = true
-                        params.x = (startX + dx).toInt()
-                        params.y = (startY + dy).toInt()
-                        if (params.x < 0) params.x = 0
-                        if (params.y < 0) params.y = 0
-                        windowManager.updateViewLayout(v, params)
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        if (!isMoving) {
-                            petEngine.onTap()
-                        }
-                    }
-                }
-                return true
-            }
-        })
+    companion object {
+        private const val CHANNEL_ID = "qiuyin_overlay_channel"
+        private const val NOTIFICATION_ID = 1001
+        private const val PET_SIZE_DP = 160
+        private const val PET_HEIGHT_DP = 200
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel("qiuyin", "秋隐", NotificationManager.IMPORTANCE_LOW)
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            nm.createNotificationChannel(channel)
+    override fun onCreate() {
+        super.onCreate()
+        createNotificationChannel()
+        startForeground(NOTIFICATION_ID, buildNotification("秋隐蹲在角落偷偷看你..."))
+        setupOverlay()
+        appDetector.start(object : AppDetector.PetCallback {
+            override fun onAppChanged(packageName: String, label: String) {
+                petEngine.handleAppSwitch(label)
+            }
+        })
+        petEngine.startIdleLoop()
+    }
+
+    private fun setupOverlay() {
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+
+        params = WindowManager.LayoutParams(
+            dpToPx(PET_SIZE_DP),
+            dpToPx(PET_HEIGHT_DP),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            else
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_PHONE,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = 30
+            y = 260
+        }
+
+        overlayView = WebView(this).apply {
+            setBackgroundColor(0x00000000)
+            settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                allowFileAccess = true
+                cacheMode = WebSettings.LOAD_DEFAULT
+            }
+            webViewClient = WebViewClient()
+            loadUrl("file:///android_asset/pet.html")
+            setOnTouchListener(createTouchListener())
+        }
+
+        windowManager?.addView(overlayView, params)
+    }
+
+    private var initialX = 0
+    private var initialY = 0
+    private var initialTouchX = 0f
+    private var initialTouchY = 0f
+    private var lastTapTime = 0L
+    private var touchStartTime = 0L
+    private var hasMoved = false
+    private var tapCount = 0
+    private var tapCountReset = Runnable { tapCount = 0 }
+
+    private fun createTouchListener(): View.OnTouchListener {
+        return View.OnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    initialX = params?.x ?: 0
+                    initialY = params?.y ?: 0
+                    initialTouchX = event.rawX
+                    initialTouchY = event.rawY
+                    touchStartTime = System.currentTimeMillis()
+                    hasMoved = false
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = (event.rawX - initialTouchX).toInt()
+                    val dy = (event.rawY - initialTouchY).toInt()
+                    if (Math.abs(dx) > 12 || Math.abs(dy) > 12) {
+                        hasMoved = true
+                        params?.x = initialX + dx
+                        params?.y = initialY + dy
+                        windowManager?.updateViewLayout(overlayView, params)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    val elapsed = System.currentTimeMillis() - touchStartTime
+                    if (!hasMoved) {
+                        when {
+                            elapsed > 600 -> onLongPress()
+                            System.currentTimeMillis() - lastTapTime < 300 -> onDoubleTap()
+                            else -> {
+                                lastTapTime = System.currentTimeMillis()
+                                onTap()
+                            }
+                        }
+                    }
+                    true
+                }
+                else -> false
+            }
         }
     }
 
-    private fun buildNotification(): Notification {
-        val intent = Intent(this, MainActivity::class.java)
+    private fun onTap() {
+        tapCount++
+        handler.removeCallbacks(tapCountReset)
+        handler.postDelayed(tapCountReset, 2000)
+        if (tapCount >= 5) {
+            petEngine.comboReaction(tapCount)
+            tapCount = 0
+            return
+        }
+        petEngine.onTap()
+        overlayView?.evaluateJavascript(
+            "window.petEngine && window.petEngine.onTap()", null
+        )
+    }
+
+    private fun onDoubleTap() {
+        petEngine.onDoubleTap()
+        overlayView?.evaluateJavascript(
+            "window.petEngine && window.petEngine.onDoubleTap()", null
+        )
+    }
+
+    private fun onLongPress() {
+        petEngine.onLongPress()
+        overlayView?.evaluateJavascript(
+            "window.petEngine && window.petEngine.onLongPress()", null
+        )
+    }
+
+    private fun buildNotification(text: String): Notification {
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        return Notification.Builder(this, "qiuyin")
-            .setContentTitle("秋隐")
-            .setContentText("正在陪你哦")
+            this, 0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("秋隐 🐾")
+            .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_menu_compass)
             .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .setSilent(true)
             .build()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "秋隐",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply { setShowBadge(false) }
+            getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
+        }
+    }
+
+    fun evaluateJavascript(js: String) {
+        overlayView?.evaluateJavascript(js, null)
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
+    }
+
+    override fun onDestroy() {
+        appDetector.stop()
+        petEngine.stop()
+        handler.removeCallbacksAndMessages(null)
+        overlayView?.let {
+            windowManager?.removeView(it)
+            it.destroy()
+        }
+        overlayView = null
+        super.onDestroy()
     }
 }
