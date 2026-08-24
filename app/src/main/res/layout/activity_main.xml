@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="秋隐"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:textColor="#7b5ea7"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="你的悬浮AI桌宠"
+        android:textSize="16sp"
+        android:textColor="#666"
+        android:layout_marginBottom="32dp"/>
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="#333"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"/>
+
+    <Button
+        android:id="@+id/permButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="开启悬浮窗权限"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/usageButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="开启使用情况访问权限"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/startButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="启动秋隐"
+        android:backgroundTint="#7b5ea7"/>
+
+</LinearLayout>
