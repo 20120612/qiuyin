@@ -1,47 +1,145 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
-    <meta charset="utf-8">
-    <style>
-        * { margin: 0; padding: 0; }
-        body { background: transparent; overflow: hidden; width: 100%; height: 100%; }
-        #pet { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
-        #bubble {
-            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-            background: rgba(255,255,255,0.9); color: #333;
-            padding: 6px 10px; border-radius: 12px; font-size: 12px;
-            white-space: nowrap; max-width: 150px; opacity: 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2); text-align: center;
-            transition: opacity 0.3s;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>秋隐</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: transparent !important;
+    overflow: hidden;
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #pet {
+    position: relative;
+    width: 130px; height: 160px;
+    margin: auto;
+    transform: translate(var(--dx,0), var(--dy,0));
+    transition: transform .8s cubic-bezier(.34,1.56,.64,1);
+    cursor: grab;
+  }
+  #pet.dragging { transition: none; cursor: grabbing; }
+  #pet svg { width: 100%; height: 100%; display: block; }
+
+  /* 幽灵飘动动画 */
+  #ghost {
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  #bubble {
+    position: absolute;
+    top: -42px; left: 50%;
+    transform: translateX(-50%) scale(.6);
+    background: rgba(255,255,255,.95);
+    color: #7b6bb8;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transition: all .25s ease;
+    box-shadow: 0 4px 14px rgba(80,60,120,.35);
+    pointer-events: none;
+  }
+  #bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
+</style>
 </head>
 <body>
-    <div id="bubble"></div>
-    <svg id="pet" width="120" height="150" viewBox="0 0 120 150">
-        <circle cx="60" cy="50" r="40" fill="#7b5ea7"/>
-        <circle cx="45" cy="42" r="6" fill="#fff"/>
-        <circle cx="75" cy="42" r="6" fill="#fff"/>
-        <circle cx="47" cy="44" r="3" fill="#5b3f8a"/>
-        <circle cx="77" cy="44" r="3" fill="#5b3f8a"/>
-        <path d="M50 62 Q60 72 70 62" stroke="#5b3f8a" stroke-width="2" fill="none"/>
-        <circle cx="20" cy="40" r="8" fill="#e8a0a0"/>
-        <circle cx="100" cy="40" r="8" fill="#e8a0a0"/>
-        <rect x="30" y="95" width="60" height="45" rx="18" fill="#8e6bb8"/>
-        <rect x="42" y="150" width="12" height="30" rx="6" fill="#7b5ea7"/>
-        <rect x="66" y="150" width="12" height="30" rx="6" fill="#7b5ea7"/>
+  <div id="pet">
+    <div id="bubble">嗨，我是秋隐✨</div>
+    <svg viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="ghostG" cx="50%" cy="30%" r="85%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="70%" stop-color="#f3f0ff"/>
+          <stop offset="100%" stop-color="#ded5ff"/>
+        </radialGradient>
+        <linearGradient id="cheekG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffc2d1"/>
+          <stop offset="100%" stop-color="#ffa3b8"/>
+        </linearGradient>
+      </defs>
+
+      <!-- 幽灵身体（上圆下波浪） -->
+      <path id="ghost" d="M80 18
+                C 118 18, 138 48, 138 88
+                C 138 128, 138 158, 138 170
+                C 128 158, 120 160, 110 170
+                C 100 160, 90 160, 80 170
+                C 70 160, 60 160, 50 170
+                C 42 160, 34 158, 24 170
+                C 24 158, 22 128, 22 88
+                C 22 48, 42 18, 80 18 Z"
+            fill="url(#ghostG)" stroke="#cfc3f0" stroke-width="3"/>
+
+      <!-- 两只眼睛 -->
+      <ellipse cx="62" cy="86" rx="11" ry="14" fill="#3a3358"/>
+      <ellipse cx="98" cy="86" rx="11" ry="14" fill="#3a3358"/>
+      <circle cx="66" cy="80" r="4" fill="#ffffff"/>
+      <circle cx="102" cy="80" r="4" fill="#ffffff"/>
+
+      <!-- 小嘴巴（惊讶可爱） -->
+      <ellipse cx="80" cy="108" rx="7" ry="8" fill="#3a3358"/>
+
+      <!-- 腮红 -->
+      <circle cx="48" cy="104" r="10" fill="url(#cheekG)" opacity=".8"/>
+      <circle cx="112" cy="104" r="10" fill="url(#cheekG)" opacity=".8"/>
+
+      <!-- 两只小手 -->
+      <ellipse cx="28" cy="130" rx="11" ry="9" fill="url(#ghostG)" stroke="#cfc3f0" stroke-width="2" transform="rotate(-20 28 130)"/>
+      <ellipse cx="132" cy="130" rx="11" ry="9" fill="url(#ghostG)" stroke="#cfc3f0" stroke-width="2" transform="rotate(20 132 130)"/>
     </svg>
-    <script>
-        var bubbleTimeout = null;
-        window.onPetSay = function(text) {
-            var b = document.getElementById('bubble');
-            b.textContent = text;
-            b.style.opacity = '1';
-            clearTimeout(bubbleTimeout);
-            bubbleTimeout = setTimeout(function() {
-                b.style.opacity = '0';
-            }, 3000);
-        };
-    </script>
+  </div>
+
+<script>
+  const pet = document.getElementById('pet');
+  const bubble = document.getElementById('bubble');
+
+  const lines = [
+    '飘过来啦～',
+    '别戳我呀',
+    '哇～要被抱抱',
+    '嘻嘻～',
+    '呜哇！',
+    '我是小幽灵秋隐～',
+    '在这里哟~'
+  ];
+
+  function say(txt) {
+    bubble.textContent = txt;
+    bubble.classList.add('show');
+    clearTimeout(say._t);
+    say._t = setTimeout(() => bubble.classList.remove('show'), 2000);
+  }
+
+  // 供 Android 外部调用
+  window.onPetSay = function (txt) {
+    say(txt);
+  };
+
+  // 仅供页面内部点击测试
+  pet.addEventListener('pointerdown', function (e) {
+    pet.classList.add('dragging');
+  });
+  window.addEventListener('pointerup', function () {
+    pet.classList.remove('dragging');
+  });
+  pet.addEventListener('dblclick', function () {
+    say('啊！好痒呀💕');
+  });
+
+  // 初始欢迎
+  setTimeout(function () { say('我是小幽灵秋隐哦～'); }, 800);
+</script>
 </body>
 </html>
