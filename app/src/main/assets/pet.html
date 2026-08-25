@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="zh">
 <head>
 <meta charset="utf-8">
@@ -9,7 +8,7 @@
   html, body {
     margin: 0; padding: 0;
     width: 100%; height: 100%;
-    background: radial-gradient(circle at 50% 38%, #ffe9f4 0%, #d9c9ff 58%, #b39ae8 100%);
+    background: transparent !important;
     overflow: hidden;
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
     touch-action: none;
@@ -22,7 +21,7 @@
   }
   #pet {
     position: relative;
-    width: 220px; height: 260px;
+    width: 160px; height: 190px;
     transform: translate(var(--dx,0), var(--dy,0));
     touch-action: none;
     transition: transform .7s cubic-bezier(.34,1.56,.64,1);
@@ -32,11 +31,11 @@
   #pet:active { cursor: grabbing; }
   svg { width: 100%; height: 100%; display: block; }
   #bubble {
-    position: absolute; top: -50px; left: 50%;
+    position: absolute; top: -42px; left: 50%;
     transform: translateX(-50%);
     background:#fff; color:#8a5fd0;
     padding: 8px 15px; border-radius: 16px;
-    font-size: 14px; white-space: nowrap;
+    font-size: 13px; white-space: nowrap;
     box-shadow: 0 4px 12px rgba(0,0,0,.15);
     opacity: 0; pointer-events: none;
     transition: opacity .25s;
@@ -45,6 +44,12 @@
     content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
     border:6px solid transparent; border-top-color:#fff; border-bottom-width:0;
   }
+  #body { animation: float 3.8s ease-in-out infinite; transform-origin: center bottom; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+  #handL { transform-origin: 38px 150px; animation: waveL 5s ease-in-out infinite; }
+  #handR { transform-origin: 182px 150px; animation: waveR 5s ease-in-out infinite; }
+  @keyframes waveL { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 50%{transform:rotate(0)} }
+  @keyframes waveR { 0%,100%{transform:rotate(0)} 75%{transform:rotate(10deg)} }
 </style>
 </head>
 <body>
@@ -77,8 +82,8 @@
 
       <!-- 圆形小白手（身体两侧） -->
       <g id="hands">
-        <circle cx="38" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
-        <circle cx="182" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
+        <circle id="handL" cx="38" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
+        <circle id="handR" cx="182" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
       </g>
 
       <!-- 脸部 -->
