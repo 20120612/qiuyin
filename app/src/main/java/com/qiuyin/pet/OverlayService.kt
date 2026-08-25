@@ -34,8 +34,8 @@ class OverlayService : Service() {
     companion object {
         private const val CHANNEL_ID = "qiuyin_overlay_channel"
         private const val NOTIFICATION_ID = 1001
-        private const val PET_SIZE_DP = 160
-        private const val PET_HEIGHT_DP = 200
+        private const val PET_SIZE_DP = 110
+        private const val PET_HEIGHT_DP = 140
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -184,26 +184,29 @@ class OverlayService : Service() {
         handler.postDelayed(tapCountReset, 2000)
         if (tapCount >= 5) {
             petEngine.comboReaction(tapCount)
+            overlayView?.evaluateJavascript(
+                "window.onPetAct && window.onPetAct('combo')", null
+            )
             tapCount = 0
             return
         }
         petEngine.onTap()
         overlayView?.evaluateJavascript(
-            "window.petEngine && window.petEngine.onTap()", null
+            "window.onPetAct && window.onPetAct('tap')", null
         )
     }
 
     private fun onDoubleTap() {
         petEngine.onDoubleTap()
         overlayView?.evaluateJavascript(
-            "window.petEngine && window.petEngine.onDoubleTap()", null
+            "window.onPetAct && window.onPetAct('double')", null
         )
     }
 
     private fun onLongPress() {
         petEngine.onLongPress()
         overlayView?.evaluateJavascript(
-            "window.petEngine && window.petEngine.onLongPress()", null
+            "window.onPetAct && window.onPetAct('long')", null
         )
     }
 
