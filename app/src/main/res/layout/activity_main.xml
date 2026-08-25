@@ -3,56 +3,102 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:background="#1a1a2e">
 
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="秋隐"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        android:textColor="#7b5ea7"
-        android:layout_marginBottom="8dp"/>
+        android:text="秋隐 🐾"
+        android:textSize="28sp"
+        android:textColor="#ffffff"
+        android:layout_marginTop="40dp"
+        android:textStyle="bold"/>
 
     <TextView
         android:id="@+id/subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="你的悬浮AI桌宠"
-        android:textSize="16sp"
-        android:textColor="#666"
-        android:layout_marginBottom="32dp"/>
+        android:text="你的专属悬浮桌宠"
+        android:textSize="14sp"
+        android:textColor="#b0a0d0"
+        android:layout_marginTop="8dp"/>
 
     <TextView
         android:id="@+id/statusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="正在检查权限..."
         android:textSize="14sp"
-        android:textColor="#333"
+        android:textColor="#e0d0ff"
+        android:layout_marginTop="40dp"
         android:gravity="center"
-        android:layout_marginBottom="32dp"/>
+        android:padding="16dp"/>
 
     <Button
         android:id="@+id/permButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="开启悬浮窗权限"
-        android:layout_marginBottom="12dp"/>
+        android:text="① 打开「悬浮窗」权限"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="#7b5ea7"/>
 
     <Button
         android:id="@+id/usageButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="开启使用情况访问权限"
-        android:layout_marginBottom="12dp"/>
+        android:text="② 打开「使用情况」权限"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="#5e7ba7"/>
+
+    <TextView
+        android:id="@+id/apiKeyLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DeepSeek API Key（用于AI台词）"
+        android:textSize="13sp"
+        android:textColor="#b0a0d0"
+        android:layout_marginTop="24dp"/>
+
+    <EditText
+        android:id="@+id/apiKeyInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="粘贴你的 deepseek api key"
+        android:inputType="text"
+        android:textSize="13sp"
+        android:textColor="#ffffff"
+        android:textColorHint="#776699"
+        android:background="#2a2a44"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/saveKeyButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="保存 Key 💾"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="#4a6fa7"/>
 
     <Button
         android:id="@+id/startButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="启动秋隐"
-        android:backgroundTint="#7b5ea7"/>
+        android:text="③ 启动秋隐 🎉"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="#e0708f"
+        android:enabled="false"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="打开秋隐后，它会蹲在你屏幕角落看着你哦～"
+        android:textSize="12sp"
+        android:textColor="#8877aa"
+        android:layout_marginTop="30dp"
+        android:gravity="center"/>
 
 </LinearLayout>
