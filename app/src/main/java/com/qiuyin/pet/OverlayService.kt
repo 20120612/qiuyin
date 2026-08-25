@@ -19,7 +19,7 @@ import androidx.core.app.NotificationCompat
 
 /**
  * 秋隐悬浮桌宠核心服务
- * 悬浮窗 + WebView 渲染 + 拖拽 + 手势 + 前台App感知 + 情绪
+ * 悬浮窗 + WebView 渲染 + 前台App感知 + 情绪
  */
 class OverlayService : Service() {
 
@@ -42,7 +42,6 @@ class OverlayService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        // 检查通知权限（Android 13+ 必须运行时授予，否则 startForeground 会崩溃）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "请先在设置里允许秋隐的通知权限", Toast.LENGTH_LONG).show()
@@ -50,7 +49,6 @@ class OverlayService : Service() {
             return
         }
         createNotificationChannel()
-        // Android 14 (targetSdk 34) 要求 startForeground 显式传入前台服务类型
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 startForeground(
@@ -66,7 +64,6 @@ class OverlayService : Service() {
             stopSelf()
             return
         }
-        // 悬浮窗权限检查，未授予则退出
         if (!android.provider.Settings.canDrawOverlays(this)) {
             Toast.makeText(this, "请先在设置里打开悬浮窗权限", Toast.LENGTH_LONG).show()
             stopSelf()
@@ -114,100 +111,13 @@ class OverlayService : Service() {
                 javaScriptEnabled = true
                 domStorageEnabled = true
                 allowFileAccess = true
-                cacheMode = WebSettings.LOAD_DEFAULT
+                cacheMode = WebSettings.LOAD_NO_CACHE
             }
             webViewClient = WebViewClient()
             loadUrl("file:///android_asset/pet.html")
-            setOnTouchListener(createTouchListener())
         }
 
         windowManager?.addView(overlayView, params)
-    }
-
-    // === 手势处理 ===
-
-    private var initialX = 0
-    private var initialY = 0
-    private var initialTouchX = 0f
-    private var initialTouchY = 0f
-    private var lastTapTime = 0L
-    private var touchStartTime = 0L
-    private var hasMoved = false
-    private var tapCount = 0
-    private var tapCountReset = Runnable { tapCount = 0 }
-
-    private fun createTouchListener(): View.OnTouchListener {
-        return View.OnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    initialX = params?.x ?: 0
-                    initialY = params?.y ?: 0
-                    initialTouchX = event.rawX
-                    initialTouchY = event.rawY
-                    touchStartTime = System.currentTimeMillis()
-                    hasMoved = false
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val dx = (event.rawX - initialTouchX).toInt()
-                    val dy = (event.rawY - initialTouchY).toInt()
-                    if (Math.abs(dx) > 12 || Math.abs(dy) > 12) {
-                        hasMoved = true
-                        params?.x = initialX + dx
-                        params?.y = initialY + dy
-                        windowManager?.updateViewLayout(overlayView, params)
-                    }
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    val elapsed = System.currentTimeMillis() - touchStartTime
-                    if (!hasMoved) {
-                        when {
-                            elapsed > 600 -> onLongPress()
-                            System.currentTimeMillis() - lastTapTime < 300 -> onDoubleTap()
-                            else -> {
-                                lastTapTime = System.currentTimeMillis()
-                                onTap()
-                            }
-                        }
-                    }
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    private fun onTap() {
-        tapCount++
-        handler.removeCallbacks(tapCountReset)
-        handler.postDelayed(tapCountReset, 2000)
-        if (tapCount >= 5) {
-            petEngine.comboReaction(tapCount)
-            overlayView?.evaluateJavascript(
-                "window.onPetAct && window.onPetAct('combo')", null
-            )
-            tapCount = 0
-            return
-        }
-        petEngine.onTap()
-        overlayView?.evaluateJavascript(
-            "window.onPetAct && window.onPetAct('tap')", null
-        )
-    }
-
-    private fun onDoubleTap() {
-        petEngine.onDoubleTap()
-        overlayView?.evaluateJavascript(
-            "window.onPetAct && window.onPetAct('double')", null
-        )
-    }
-
-    private fun onLongPress() {
-        petEngine.onLongPress()
-        overlayView?.evaluateJavascript(
-            "window.onPetAct && window.onPetAct('long')", null
-        )
     }
 
     // === 通知栏 ===
