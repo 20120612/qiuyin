@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-
-
 <html lang="zh">
 <head>
 <meta charset="utf-8">
@@ -62,7 +60,7 @@
         </linearGradient>
       </defs>
 
-      <!-- 身体：暖白胖圆团子，底部波浪 -->
+<!-- 身体：暖白胖圆团子，底部波浪 -->
       <g id="body">
         <path d="M110 52
                  C72 52 44 80 42 118
@@ -76,13 +74,13 @@
              fill="url(#ghostG)" stroke="#e6d5ff" stroke-width="3" stroke-linejoin="round"/>
       </g>
 
-      <!-- 圆形小白手（身体两侧） -->
+<!-- 圆形小白手（身体两侧） -->
       <g id="hands">
         <circle cx="38" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
         <circle cx="182" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
       </g>
 
-      <!-- 脸部 -->
+<!-- 脸部 -->
       <g id="face">
         <!-- 大圆萌眼：黑亮带高光 -->
         <ellipse cx="86" cy="120" rx="14" ry="16" fill="#3a2f5c"/>
@@ -105,7 +103,12 @@
   const bubble = document.getElementById('bubble');
   let down=false, sx=0, sy=0, moved=false, startT=0, timer=;
 
-  pet.addEventListener('pointerdown', e=>{
+// 供 Kotlin 调用：感知App/情绪时弹字
+  window.onPetSay = function (txt) {
+    say(String(txt));
+  };
+
+pet.addEventListener('pointerdown', e=>{
     down=true; moved=false; startT=Date.now();
     sx=e.clientX; sy=e.clientY;
     pet.style.transition='none';
@@ -123,10 +126,10 @@
     down=false;
     pet.style.transition='transform .7s cubic-bezier(.34,1.56,.64,1)';
     if(moved){ pet.style.setProperty('--dx','0px'); pet.style.setProperty('--dy','0px'); say('呀……放我下来～'); return; }
-    if(Date.now()-startT<450){ say(['嘿咻～','别戳我啦','要抱抱'], null, true); bob(); }
+    if(Date.now()-startT<450){ say(['嘿咻～','别戳我啦','要抱抱','嘻嘻~','干嘛戳我呀'], null, true); bob(); }
   });
 
-  function bob(){
+function bob(){
     pet.style.transition='transform .3s';
     pet.style.setProperty('--dy','-12px');
     setTimeout(()=>{pet.style.setProperty('--dy','0px');},300);
