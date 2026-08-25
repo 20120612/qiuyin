@@ -111,94 +111,9 @@ class OverlayService : Service() {
             }
             webViewClient = WebViewClient()
             loadUrl("file:///android_asset/pet.html")
-            setOnTouchListener(createTouchListener())
         }
 
         windowManager?.addView(overlayView, params)
-    }
-
-    private var initialX = 0
-    private var initialY = 0
-    private var initialTouchX = 0f
-    private var initialTouchY = 0f
-    private var lastTapTime = 0L
-    private var touchStartTime = 0L
-    private var hasMoved = false
-    private var tapCount = 0
-    private var tapCountReset = Runnable { tapCount = 0 }
-
-    private fun createTouchListener(): View.OnTouchListener {
-        return View.OnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    initialX = params?.x ?: 0
-                    initialY = params?.y ?: 0
-                    initialTouchX = event.rawX
-                    initialTouchY = event.rawY
-                    touchStartTime = System.currentTimeMillis()
-                    hasMoved = false
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val dx = (event.rawX - initialTouchX).toInt()
-                    val dy = (event.rawY - initialTouchY).toInt()
-                    if (Math.abs(dx) > 12 || Math.abs(dy) > 12) {
-                        hasMoved = true
-                        params?.x = initialX + dx
-                        params?.y = initialY + dy
-                        windowManager?.updateViewLayout(overlayView, params)
-                    }
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    val elapsed = System.currentTimeMillis() - touchStartTime
-                    if (!hasMoved) {
-                        when {
-                            elapsed > 600 -> onLongPress()
-                            System.currentTimeMillis() - lastTapTime < 300 -> onDoubleTap()
-                            else -> {
-                                lastTapTime = System.currentTimeMillis()
-                                onTap()
-                            }
-                        }
-                    }
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    private fun onTap() {
-        tapCount++
-        handler.removeCallbacks(tapCountReset)
-        handler.postDelayed(tapCountReset, 2000)
-        if (tapCount >= 5) {
-            petEngine.comboReaction(tapCount)
-            overlayView?.evaluateJavascript(
-                "window.onPetSay && window.onPetSay(['呼～好累呀','别欺负我啦'], null, true); window.onPetAct && window.onPetAct('tap')", null
-            )
-            tapCount = 0
-            return
-        }
-        petEngine.onTap()
-        overlayView?.evaluateJavascript(
-            "window.onPetSay && window.onPetSay(['嘿咻～','别戳我啦','要抱抱'], null, true); window.onPetAct && window.onPetAct('tap')", null
-        )
-    }
-
-    private fun onDoubleTap() {
-        petEngine.onDoubleTap()
-        overlayView?.evaluateJavascript(
-            "window.onPetSay && window.onPetSay(['哇！干嘛呀～'], null, false); window.onPetAct && window.onPetAct('tap')", null
-        )
-    }
-
-    private fun onLongPress() {
-        petEngine.onLongPress()
-        overlayView?.evaluateJavascript(
-            "window.onPetSay && window.onPetSay(['嘿嘿，好痒哦～'], null, false); window.onPetAct && window.onPetAct('tap')", null
-        )
     }
 
     private fun buildNotification(text: String): Notification {
