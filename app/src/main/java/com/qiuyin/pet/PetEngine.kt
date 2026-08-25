@@ -8,11 +8,11 @@ class PetEngine(
     private val handler: Handler
 ) {
 
-private var loneliness = 0
+    private var loneliness = 0
     private var lastInteractTime = System.currentTimeMillis()
     private var heat = 0
 
-private val idleRunnable = object : Runnable {
+    private val idleRunnable = object : Runnable {
         override fun run() {
             val elapsed = (System.currentTimeMillis() - lastInteractTime) / 60000
             when {
@@ -36,15 +36,15 @@ private val idleRunnable = object : Runnable {
         }
     }
 
-fun startIdleLoop() {
+    fun startIdleLoop() {
         handler.postDelayed(idleRunnable, 8000)
     }
 
-fun stop() {
+    fun stop() {
         handler.removeCallbacks(idleRunnable)
     }
 
-private fun randomIdleTalk() {
+    private fun randomIdleTalk() {
         val lines = arrayOf(
             "你在干嘛呀～",
             "陪陪我嘛～",
@@ -53,30 +53,30 @@ private fun randomIdleTalk() {
             "好无聊哦...",
             "戳我一下嘛！"
         )
-        say(lines(Math.random() * lines.size).toInt() (Math.random()
+        say(lines[(Math.random() * lines.size).toInt()])
     }
 
-fun onTap() {
+    fun onTap() {
         lastInteractTime = System.currentTimeMillis()
         loneliness = 0
         heat = (heat + 5).coerceAtMost(100)
         val lines = arrayOf("嘿咻～", "别戳我啦", "要抱抱", "嘻嘻~", "干嘛戳我呀")
-        say(lines(Math.random() * lines.size).toInt() (Math.random()
+        say(lines[(Math.random() * lines.size).toInt()])
     }
 
-fun onDoubleTap() {
+    fun onDoubleTap() {
         lastInteractTime = System.currentTimeMillis()
         loneliness = 0
         say("啊！好痒呀💕")
     }
 
-fun onLongPress() {
+    fun onLongPress() {
         lastInteractTime = System.currentTimeMillis()
         loneliness = 0
         say("呜...你一直长按我")
     }
 
-fun comboReaction(count: Int) {
+    fun comboReaction(count: Int) {
         lastInteractTime = System.currentTimeMillis()
         heat = (heat + 15).coerceAtMost(100)
         when (count) {
@@ -86,7 +86,7 @@ fun comboReaction(count: Int) {
         }
     }
 
-fun handleAppSwitch(label: String) {
+    fun handleAppSwitch(label: String) {
         lastInteractTime = System.currentTimeMillis()
         when {
             label.contains("抖音") || label.contains("快手") || label.contains("视频") ->
@@ -97,7 +97,7 @@ fun handleAppSwitch(label: String) {
             label.contains("游戏") || label.contains("王者") || label.contains("4399") ->
                 say("又在打游戏，带我一起嘛～")
             label.contains("学习") || label.contains("课") -> say("在认真学习，真棒!")
-            else -> say("切到「{label}」啦")
+            else -> say("切到「${label}」啦")
         }
     }
 
@@ -105,7 +105,7 @@ fun handleAppSwitch(label: String) {
         val escaped = text.replace("\\", "\\\\").replace("'", "\\'")
         handler.post {
             try {
-                val js = "window.onPetSay && window.onPetSay('escaped');"
+                val js = "window.onPetSay && window.onPetSay('$escaped');"
                 service.evaluateJavascript(js)
             } catch (e: Exception) {
             }
