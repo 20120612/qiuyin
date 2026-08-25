@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="zh">
 <head>
 <meta charset="utf-8">
@@ -65,8 +66,6 @@
           <stop offset="100%" stop-color="#f3e8ff"/>
         </linearGradient>
       </defs>
-
-      <!-- 身体：暖白胖圆团子，底部波浪 -->
       <g id="body">
         <path d="M110 52
                  C72 52 44 80 42 118
@@ -79,25 +78,18 @@
                  C176 80 148 52 110 52 Z"
              fill="url(#ghostG)" stroke="#e6d5ff" stroke-width="3" stroke-linejoin="round"/>
       </g>
-
-      <!-- 圆形小白手（身体两侧） -->
       <g id="hands">
         <circle id="handL" cx="38" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
         <circle id="handR" cx="182" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
       </g>
-
-      <!-- 脸部 -->
       <g id="face">
-        <!-- 大圆萌眼：黑亮带高光 -->
         <ellipse cx="86" cy="120" rx="14" ry="16" fill="#3a2f5c"/>
         <ellipse cx="134" cy="120" rx="14" ry="16" fill="#3a2f5c"/>
         <circle cx="82" cy="114" r="5.5" fill="#fff"/>
         <circle cx="130" cy="114" r="4.5" fill="#fff" opacity=".9"/>
         <circle cx="91" cy="128" r="2.5" fill="#fff" opacity=".55"/>
-        <!-- 圆润腮红 -->
         <ellipse cx="58" cy="146" rx="14" ry="10" fill="#ffb3cf" opacity=".75"/>
         <ellipse cx="162" cy="146" rx="14" ry="10" fill="#ffb3cf" opacity=".75"/>
-        <!-- 开心上扬的小嘴 -->
         <path d="M104 150 Q110 144 116 150" stroke="#a087e0" stroke-width="3.5" fill="none" stroke-linecap="round"/>
       </g>
     </svg>
@@ -107,40 +99,24 @@
 <script>
   const pet = document.getElementById('pet');
   const bubble = document.getElementById('bubble');
-  let down=false, sx=0, sy=0, moved=false, startT=0, timer=;
+  let timer = null;
 
-  pet.addEventListener('pointerdown', e=>{
-    down=true; moved=false; startT=Date.now();
-    sx=e.clientX; sy=e.clientY;
-    pet.style.transition='none';
-    pet.setPointerCapture(e.pointerId);
-  });
-  pet.addEventListener('pointermove', e=>{
-    if(!down) return;
-    const dx=e.clientX-sx, dy=e.clientY-sy;
-    if(Math.abs(dx)+Math.abs(dy)>6) moved=true;
-    pet.style.setProperty('--dx', dx+'px');
-    pet.style.setProperty('--dy', dy+'px');
-  });
-  pet.addEventListener('pointerup', e=>{
-    if(!down) return;
-    down=false;
-    pet.style.transition='transform .7s cubic-bezier(.34,1.56,.64,1)';
-    if(moved){ pet.style.setProperty('--dx','0px'); pet.style.setProperty('--dy','0px'); say('呀……放我下来～'); return; }
-    if(Date.now()-startT<450){ say(['嘿咻～','别戳我啦','要抱抱'], null, true); bob(); }
-  });
-
-  function bob(){
-    pet.style.transition='transform .3s';
-    pet.style.setProperty('--dy','-12px');
-    setTimeout(()=>{pet.style.setProperty('--dy','0px');},300);
-  }
-  function say(text, onDone, random){
-    bubble.textContent = random ? text[Math.floor(Math.random()*text.length)] : text;
-    bubble.style.opacity='1';
+  window.onPetSay = function(text, onDone, random) {
+    let t = text;
+    if (random) t = text[Math.floor(Math.random()*text.length)];
+    bubble.textContent = t || '嗯？戳我干嘛～';
+    bubble.style.opacity = '1';
     clearTimeout(timer);
-    timer=setTimeout(()=>{bubble.style.opacity='0'; if(onDone)onDone();},2200);
-  }
+    timer = setTimeout(function(){ bubble.style.opacity='0'; if(onDone)onDone(); }, 2200);
+  };
+
+  window.onPetAct = function(action) {
+    if (action === 'tap') {
+      pet.style.transition = 'transform .3s';
+      pet.style.setProperty('--dy','-14px');
+      setTimeout(function(){ pet.style.setProperty('--dy','0px'); }, 300);
+    }
+  };
 </script>
 </body>
 </html>
