@@ -17,26 +17,31 @@ import android.webkit.WebSettings
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 
+/**
+ * 秋隐悬浮桌宠核心服务
+ * 悬浮窗 + WebView 渲染 + 前台App感知 + 情绪
+ * 触摸事件交给网页处理（点击弹字+动），感知/情绪由 Kotlin 通过 window.onPetSay 弹字
+ */
 class OverlayService : Service() {
 
-    private var windowManager: WindowManager? = null
+private var windowManager: WindowManager? = null
     private var overlayView: WebView? = null
     private var params: WindowManager.LayoutParams? = null
     private val handler = Handler(Looper.getMainLooper())
 
-    private val appDetector by lazy { AppDetector(this) }
+private val appDetector by lazy { AppDetector(this) }
     private val petEngine by lazy { PetEngine(this, handler) }
 
-    companion object {
+companion object {
         private const val CHANNEL_ID = "qiuyin_overlay_channel"
         private const val NOTIFICATION_ID = 1001
-        private const val PET_SIZE_DP = 110
-        private const val PET_HEIGHT_DP = 140
+        private const val PET_SIZE_DP = 160
+        private const val PET_HEIGHT_DP = 200
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
+override fun onBind(intent: Intent?): IBinder? = null
 
-    override fun onCreate() {
+override fun onCreate() {
         super.onCreate()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -81,9 +86,10 @@ class OverlayService : Service() {
         petEngine.startIdleLoop()
     }
 
-    private fun setupOverlay() {
+private fun setupOverlay() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
+// 标准悬浮窗配置：NOT_FOCUSABLE + NOT_TOUCH_MODAL，红米稳定不崩
         params = WindowManager.LayoutParams(
             dpToPx(PET_SIZE_DP),
             dpToPx(PET_HEIGHT_DP),
@@ -93,7 +99,7 @@ class OverlayService : Service() {
                 @Suppress("DEPRECATION")
                 WindowManager.LayoutParams.TYPE_PHONE,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -101,7 +107,7 @@ class OverlayService : Service() {
             y = 260
         }
 
-        overlayView = WebView(this).apply {
+overlayView = WebView(this).apply {
             setBackgroundColor(0x00000000)
             settings.apply {
                 javaScriptEnabled = true
@@ -113,10 +119,12 @@ class OverlayService : Service() {
             loadUrl("file:///android_asset/pet.html")
         }
 
-        windowManager?.addView(overlayView, params)
+windowManager?.addView(overlayView, params)
     }
 
-    private fun buildNotification(text: String): Notification {
+// === 通知栏 ===
+
+private fun buildNotification(text: String): Notification {
         val pendingIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, MainActivity::class.java),
@@ -132,7 +140,7 @@ class OverlayService : Service() {
             .build()
     }
 
-    private fun createNotificationChannel() {
+private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -144,15 +152,17 @@ class OverlayService : Service() {
         }
     }
 
-    fun evaluateJavascript(js: String) {
+// === 工具 ===
+
+fun evaluateJavascript(js: String) {
         overlayView?.evaluateJavascript(js, null)
     }
 
-    private fun dpToPx(dp: Int): Int {
+private fun dpToPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
     }
 
-    override fun onDestroy() {
+override fun onDestroy() {
         appDetector.stop()
         petEngine.stop()
         handler.removeCallbacksAndMessages(null)
