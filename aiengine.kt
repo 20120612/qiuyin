@@ -87,3 +87,44 @@ override fun onResponse(call: Call, response: okhttp3.Response) {
             }
         })
     }
+
+private fun buildPrompt(scene: String, mood: String): String {
+        return """
+你是「秋隐」，一个Q版白色小幽灵桌宠，住在用户手机屏幕角落，温柔、粘人、有点傲娇、会撒娇。
+现在是凌晨${java.time.LocalTime.now().hour}点，${timePhrase()}。
+
+当前场景：$scene
+情绪基调：$mood
+
+请用一句简短的话回应（15个字以内，最多一句），要贴合秋隐的人设和场景，带一点语气词或颜文字（如～、✨、💕、(๑•̀ㅂ•́)و✧）。
+只输出这一句话本身，不要任何多余说明、不要引号、不要解释。
+""".trim()
+    }
+
+private fun parseContent(body: String?): String? {
+        if (body.isNullOrBlank()) return null
+        return try {
+            val obj = JSONObject(body)
+            val choices = obj.optJSONArray("choices") ?: return null
+            if (choices.length() == 0) return null
+            val msg = choices.getJSONObject(0).optJSONObject("message") ?: return null
+            msg.optString("content")
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+private fun clean(s: String): String {
+        return s.replace("\n", " ").replace("\r", "").replace("\"", "").trim()
+    }
+
+private fun timePhrase(): String {
+        val h = java.time.LocalTime.now().hour
+        return when {
+            h in 6..11 -> "清晨"
+            h in 12..17 -> "白天"
+            h in 18..22 -> "晚上"
+            else -> "深夜"
+        }
+    }
+}
