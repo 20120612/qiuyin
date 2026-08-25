@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="zh">
 <head>
 <meta charset="utf-8">
@@ -17,29 +16,46 @@
   }
   #pet {
     position: relative;
-    width: 150px; height: 180px;
+    width: 96px; height: 116px;   /* 变小一点 */
     margin: auto;
     transform: translate(var(--dx,0), var(--dy,0));
     cursor: grab;
   }
   #pet:active { cursor: grabbing; }
   #bubble {
-    position: absolute; top: -46px; left: 50%;
+    position: absolute; top: -40px; left: 50%;
     transform: translateX(-50%);
-    background:#fff; color:#8a5fd0;
-    padding: 7px 14px; border-radius: 15px;
-    font-size: 14px; font-weight: 600; white-space: nowrap;
-    box-shadow: 0 3px 10px rgba(80,60,120,.3);
+    background: rgba(255,255,255,.92); color:#7a7391;
+    padding: 6px 12px; border-radius: 14px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(60,60,90,.25);
     opacity: 0; pointer-events: none;
     transition: opacity .2s;
   }
   #bubble:before {
     content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
-    border:6px solid transparent; border-top-color:#fff; border-bottom-width:0;
+    border:6px solid transparent; border-top-color:rgba(255,255,255,.92); border-bottom-width:0;
   }
-  /* 呼吸飘动 + 点击弹跳都由 JS 控制，身体整体微浮动 */
-  #ghost { animation: float 3.2s ease-in-out infinite; }
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+  /* 整体半透明幽灵 */
+  #ghost { opacity: .82; animation: float 3.4s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  /* 眼睛眨眼 */
+  #eyeL,#eyeR { animation: blink 4.2s infinite; }
+  @keyframes blink { 0%,92%,100%{transform:scaleY(1)} 95%{transform:scaleY(.1)} 98%{transform:scaleY(1)} }
+  /* 小手摆动 */
+  #handL { transform-origin: 30px 112px; animation: waveL 4.5s ease-in-out infinite; }
+  #handR { transform-origin: 120px 112px; animation: waveR 4.5s ease-in-out infinite; }
+  @keyframes waveL { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-14deg)} 50%{transform:rotate(0)} }
+  @keyframes waveR { 0%,100%{transform:rotate(0)} 75%{transform:rotate(14deg)} }
+  /* 点头动作（触发时用） */
+  #ghost.nod { animation: nod .5s ease; }
+  @keyframes nod { 0%,100%{transform:translateY(0)} 40%{transform:translateY(5px)} 70%{transform:translateY(-3px)} }
+  /* 跳一下 */
+  #ghost.jump { animation: jump .45s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes jump { 0%{transform:translateY(0)} 40%{transform:translateY(-16px)} 70%{transform:translateY(0)} 100%{transform:translateY(0)} }
+  /* 摇摆 */
+  #ghost.shake { animation: shake .4s ease; }
+  @keyframes shake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-6deg)} 75%{transform:rotate(6deg)} }
 </style>
 </head>
 <body>
@@ -48,13 +64,17 @@
     <svg id="ghost" viewBox="0 0 150 180" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="ghostG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ffffff"/>
-          <stop offset="55%" stop-color="#fdf5ff"/>
-          <stop offset="100%" stop-color="#f0e6ff"/>
+          <stop offset="0%" stop-color="#e8eaef"/>
+          <stop offset="55%" stop-color="#c9cdd8"/>
+          <stop offset="100%" stop-color="#a9aec0"/>
+        </linearGradient>
+        <linearGradient id="eyeG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffe98a"/>
+          <stop offset="100%" stop-color="#ffc93c"/>
         </linearGradient>
       </defs>
 
-      <!-- 身体：胖胖团子，底部波浪 -->
+      <!-- 身体：半透明灰色团子，底部波浪 -->
       <path d="M75 30
                C45 30 26 52 25 82
                C24 106 27 128 33 146
@@ -64,53 +84,98 @@
                C99 145 107 136 117 146
                C123 128 126 106 125 82
                C124 52 105 30 75 30 Z"
-            fill="url(#ghostG)" stroke="#e2d1f7" stroke-width="3" stroke-linejoin="round"/>
+            fill="url(#ghostG)" stroke="#8f94a8" stroke-width="2.5" fill-opacity="0.75" stroke-linejoin="round"/>
 
-      <!-- 小白手 -->
-      <circle cx="28" cy="110" r="11" fill="#fff" stroke="#e2d1f7" stroke-width="2.5"/>
-      <circle cx="122" cy="110" r="11" fill="#fff" stroke="#e2d1f7" stroke-width="2.5"/>
+      <!-- 小白手（会摆） -->
+      <circle id="handL" cx="30" cy="112" r="10" fill="#e8eaef" fill-opacity=".75" stroke="#8f94a8" stroke-width="2"/>
+      <circle id="handR" cx="120" cy="112" r="10" fill="#e8eaef" fill-opacity=".75" stroke="#8f94a8" stroke-width="2"/>
 
-      <!-- 大萌眼（带高光） -->
-      <ellipse cx="58" cy="86" rx="12" ry="14" fill="#3a2f5c"/>
-      <ellipse cx="92" cy="86" rx="12" ry="14" fill="#3a2f5c"/>
-      <circle cx="54" cy="80" r="5" fill="#fff"/>
-      <circle cx="88" cy="80" r="4" fill="#fff" opacity=".9"/>
-      <circle cx="62" cy="92" r="2.2" fill="#fff" opacity=".55"/>
+      <!-- 黄色大眼睛（带高光，会眨眼） -->
+      <ellipse id="eyeL" cx="58" cy="86" rx="11" ry="13" fill="url(#eyeG)" stroke="#6b5c2e" stroke-width="1.5"/>
+      <ellipse id="eyeR" cx="92" cy="86" rx="11" ry="13" fill="url(#eyeG)" stroke="#6b5c2e" stroke-width="1.5"/>
+      <ellipse id="pupilL" cx="60" cy="88" rx="5.5" ry="7" fill="#3a3358"/>
+      <ellipse id="pupilR" cx="90" cy="88" rx="5.5" ry="7" fill="#3a3358"/>
+      <circle cx="63" cy="82" r="3" fill="#fff"/>
+      <circle cx="93" cy="82" r="2.6" fill="#fff" opacity=".9"/>
 
-      <!-- 圆润腮红 -->
-      <ellipse cx="38" cy="104" rx="12" ry="8" fill="#ffb3cf" opacity=".75"/>
-      <ellipse cx="112" cy="104" rx="12" ry="8" fill="#ffb3cf" opacity=".75"/>
+      <!-- 腮红（淡紫） -->
+      <ellipse cx="38" cy="104" rx="11" ry="7" fill="#d9c3f0" opacity=".6"/>
+      <ellipse cx="112" cy="104" rx="11" ry="7" fill="#d9c3f0" opacity=".6"/>
 
-      <!-- 开心上扬小嘴 -->
-      <path d="M68 106 Q75 100 82 106" stroke="#a087e0" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+      <!-- 嘴巴（默认开心笑，可被情绪切换） -->
+      <path id="mouth" d="M66 108 Q75 100 84 108" stroke="#6b5c2e" stroke-width="3.2" fill="none" stroke-linecap="round"/>
     </svg>
   </div>
 
 <script>
   const pet = document.getElementById('pet');
   const bubble = document.getElementById('bubble');
+  const ghost = document.getElementById('ghost');
+  const mouth = document.getElementById('mouth');
+  const eyeL = document.getElementById('eyeL');
+  const eyeR = document.getElementById('eyeR');
   let timer = null;
 
-  // 供 Android 调用显示说话气泡（Kotlin -> onPetSay）
-  window.onPetSay = function (txt) {
+  // 情绪 -> 表情
+  const moods = {
+    happy:  { mouth: 'M66 108 Q75 100 84 108', eye:'happy' },
+    sad:    { mouth: 'M66 112 Q75 118 84 112', eye:'sad' },
+    angry:  { mouth: 'M68 110 L82 106 L82 112', eye:'angry' },
+    sleepy: { mouth: 'M70 112 L80 108 L90 112', eye:'sleepy' }
+  };
+
+  function setMood(mood) {
+    const m = moods[mood] || moods.happy;
+    mouth.setAttribute('d', m.mouth);
+    // 眼睛情绪
+    if (m.eye === 'sleepy') {
+      eyeL.setAttribute('ry', '3'); eyeR.setAttribute('ry', '3');
+      pupilL.style.display='none'; pupilR.style.display='none';
+    } else if (m.eye === 'angry') {
+      // 眯成斜线
+      eyeL.setAttribute('ry', '6'); eyeR.setAttribute('ry', '6');
+      pupilL.style.display=''; pupilR.style.display='';
+    } else if (m.eye === 'sad') {
+      eyeL.setAttribute('ry', '10'); eyeR.setAttribute('ry', '10');
+      pupilL.style.display=''; pupilR.style.display='';
+    } else {
+      eyeL.setAttribute('ry', '13'); eyeR.setAttribute('ry', '13');
+      pupilL.style.display=''; pupilR.style.display='';
+    }
+  }
+
+  // 供 Android 调用显示说话气泡（Kotlin -> onPetSay）+ 触发动作
+  window.onPetSay = function (txt, mood) {
     bubble.textContent = txt;
     bubble.style.opacity = '1';
     clearTimeout(timer);
-    timer = setTimeout(() => { bubble.style.opacity = '0'; }, 2200);
-    // 说话时轻轻弹跳一下
-    pet.style.transition = 'transform .18s cubic-bezier(.34,1.56,.64,1)';
-    pet.style.setProperty('--dy', '-14px');
-    setTimeout(() => {
-      pet.style.setProperty('--dy', '0px');
-    }, 180);
+    timer = setTimeout(() => { bubble.style.opacity = '0'; setMood('happy'); }, 2300);
+    // 说话时弹跳 + 表情
+    setMood(mood || 'happy');
+    playAct(mood);
   };
 
-  // 点击宠物本体时的本地动画（拖拽自动归位 + 轻弹）
+  // 供 Android 触发动作（tap/doubletap/longpress/tapcombo）
+  window.onPetAct = function (act) {
+    playAct(act);
+  };
+
+  function playAct(act) {
+    const reset = () => { ghost.classList.remove('nod','jump','shake'); };
+    reset();
+    if (act === 'double' || act === 'happy') { ghost.classList.add('jump'); setMood('happy'); }
+    else if (act === 'long') { ghost.classList.add('shake'); setMood('sad'); }
+    else if (act === 'combo') { ghost.classList.add('shake'); setMood('angry'); }
+    else if (act === 'sleepy') { setMood('sleepy'); }
+    else { ghost.classList.add('nod'); setMood('happy'); }
+    setTimeout(reset, 600);
+  }
+
+  // 点击宠物本体（本地拖拽 + 轻弹）
   let down = false, sx = 0, sy = 0, moved = false;
   pet.addEventListener('pointerdown', e => {
     down = true; moved = false; sx = e.clientX; sy = e.clientY;
     pet.style.transition = 'none';
-    pet.setPointerCapture(e.pointerId);
   });
   pet.addEventListener('pointermove', e => {
     if (!down) return;
@@ -128,9 +193,9 @@
       pet.style.setProperty('--dy', '0px');
       return;
     }
-    // 点击弹跳
+    // 本地小弹跳
     pet.style.transition = 'transform .18s cubic-bezier(.34,1.56,.64,1)';
-    pet.style.setProperty('--dy', '-14px');
+    pet.style.setProperty('--dy', '-10px');
     setTimeout(() => { pet.style.setProperty('--dy', '0px'); }, 180);
   });
 </script>
