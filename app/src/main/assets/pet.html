@@ -11,7 +11,6 @@
     background: transparent !important;
     overflow: hidden;
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-    touch-action: none;
     user-select: none;
     -webkit-user-select: none;
   }
@@ -19,13 +18,8 @@
     position: relative;
     width: 140px; height: 170px;
     margin: auto;
-    transform: translate(var(--dx,0), var(--dy,0));
-    transition: transform .8s cubic-bezier(.34,1.56,.64,1);
-    cursor: grab;
   }
-  #pet.dragging { transition: none; cursor: grabbing; }
   #pet svg { width: 100%; height: 100%; display: block; }
-
   #bubble {
     position: absolute;
     top: -42px; left: 50%;
@@ -60,54 +54,26 @@
           <stop offset="100%" stop-color="#ff8fab"/>
         </linearGradient>
       </defs>
-
-      <!-- 小手 -->
       <circle cx="26" cy="120" r="13" fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="2"/>
       <circle cx="124" cy="120" r="13" fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="2"/>
-
-      <!-- 小脚 -->
       <ellipse cx="58" cy="188" rx="16" ry="8" fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="2"/>
       <ellipse cx="92" cy="188" rx="16" ry="8" fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="2"/>
-
-      <!-- 身体 -->
-      <path id="body" d="M75 38
-                   C 112 38, 134 70, 134 108
-                   C 134 152, 108 180, 75 180
-                   C 42 180, 16 152, 16 108
-                   C 16 70, 38 38, 75 38 Z"
+      <path id="body" d="M75 38 C 112 38, 134 70, 134 108 C 134 152, 108 180, 75 180 C 42 180, 16 152, 16 108 C 16 70, 38 38, 75 38 Z"
             fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="3"/>
-
-      <!-- 腮红 -->
       <circle cx="42" cy="118" r="12" fill="url(#cheekG)" opacity=".75"/>
       <circle cx="108" cy="118" r="12" fill="url(#cheekG)" opacity=".75"/>
     </svg>
   </div>
-
 <script>
   const pet = document.getElementById('pet');
   const bubble = document.getElementById('bubble');
-
-  // 供 Android 调用：显示台词气泡（AI 生成的或预设话）
-  window.onPetSay = function (txt) {
-    say(String(txt));
-  };
-
   function say(txt) {
     bubble.textContent = txt;
     bubble.classList.add('show');
     clearTimeout(say._t);
     say._t = setTimeout(() => bubble.classList.remove('show'), 2000);
   }
-
-  // 拖拽状态（由原生 OverlayService 拦截，这里仅同步动画）
-  pet.addEventListener('pointerdown', function () {
-    pet.classList.add('dragging');
-  });
-  window.addEventListener('pointerup', function () {
-    pet.classList.remove('dragging');
-  });
-
-  // 初始欢迎
+  window.onPetSay = function (txt) { say(txt); };
   setTimeout(function () { say('我是秋隐哦～'); }, 800);
 </script>
 </body>
