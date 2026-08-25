@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>秋隐 · Q版萌物小幽灵</title>
+<title>秋隐</title>
 <style>
   html, body {
     margin: 0; padding: 0;
@@ -13,133 +13,102 @@
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
     touch-action: none;
     user-select: none;
-  }
-  #stage {
-    position: fixed; inset: 0; z-index: 5;
-    display: flex; align-items: center; justify-content: center;
-    pointer-events: none;
+    -webkit-user-select: none;
   }
   #pet {
     position: relative;
-    width: 180px; height: 212px;
+    width: 140px; height: 170px;
+    margin: auto;
     transform: translate(var(--dx,0), var(--dy,0));
-    touch-action: none;
-    transition: transform .7s cubic-bezier(.34,1.56,.64,1);
-    pointer-events: auto;
+    transition: transform .8s cubic-bezier(.34,1.56,.64,1);
     cursor: grab;
   }
-  #pet:active { cursor: grabbing; }
-  svg { width: 100%; height: 100%; display: block; }
+  #pet.dragging { transition: none; cursor: grabbing; }
+  #pet svg { width: 100%; height: 100%; display: block; }
+
   #bubble {
-    position: absolute; top: -48px; left: 50%;
-    transform: translateX(-50%);
-    background:#fff; color:#8a5fd0;
-    padding: 8px 15px; border-radius: 16px;
-    font-size: 14px; white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0,0,0,.15);
-    opacity: 0; pointer-events: none;
-    transition: opacity .25s;
+    position: absolute;
+    top: -42px; left: 50%;
+    transform: translateX(-50%) scale(.6);
+    background: rgba(255,255,255,.95);
+    color: #6b5a8e;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transition: all .25s ease;
+    box-shadow: 0 4px 14px rgba(80,60,120,.35);
+    pointer-events: none;
   }
-  #bubble:before {
-    content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
-    border:6px solid transparent; border-top-color:#fff; border-bottom-width:0;
-  }
+  #bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
 </style>
 </head>
 <body>
-
-<div id="stage">
   <div id="pet">
-    <div id="bubble"></div>
-    <svg viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg">
+    <div id="bubble">嗨，我是秋隐✨</div>
+    <svg viewBox="0 0 150 200" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="ghostG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ffffff"/>
-          <stop offset="55%" stop-color="#fdf6ff"/>
-          <stop offset="100%" stop-color="#f3e8ff"/>
+        <radialGradient id="bodyG" cx="50%" cy="35%" r="80%">
+          <stop offset="0%" stop-color="#fff6e8"/>
+          <stop offset="60%" stop-color="#fce4f5"/>
+          <stop offset="100%" stop-color="#e8d4ff"/>
+        </radialGradient>
+        <linearGradient id="cheekG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffb3c1"/>
+          <stop offset="100%" stop-color="#ff8fab"/>
         </linearGradient>
       </defs>
 
-<!-- 身体：暖白胖圆团子，底部波浪 -->
-      <g id="body">
-        <path d="M110 52
-                 C72 52 44 80 42 118
-                 C41 148 45 176 52 198
-                 C64 186 74 196 84 200
-                 C94 204 103 196 110 200
-                 C117 196 126 204 136 200
-                 C146 196 156 186 168 198
-                 C175 176 179 148 178 118
-                 C176 80 148 52 110 52 Z"
-             fill="url(#ghostG)" stroke="#e6d5ff" stroke-width="3" stroke-linejoin="round"/>
-      </g>
+      <!-- 小手 -->
+      <circle cx="26" cy="120" r="13" fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="2"/>
+      <circle cx="124" cy="120" r="13" fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="2"/>
 
-<!-- 圆形小白手（身体两侧） -->
-      <g id="hands">
-        <circle cx="38" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
-        <circle cx="182" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
-      </g>
+      <!-- 小脚 -->
+      <ellipse cx="58" cy="188" rx="16" ry="8" fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="2"/>
+      <ellipse cx="92" cy="188" rx="16" ry="8" fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="2"/>
 
-<!-- 脸部 -->
-      <g id="face">
-        <!-- 大圆萌眼：黑亮带高光 -->
-        <ellipse cx="86" cy="120" rx="14" ry="16" fill="#3a2f5c"/>
-        <ellipse cx="134" cy="120" rx="14" ry="16" fill="#3a2f5c"/>
-        <circle cx="82" cy="114" r="5.5" fill="#fff"/>
-        <circle cx="130" cy="114" r="4.5" fill="#fff" opacity=".9"/>
-        <circle cx="91" cy="128" r="2.5" fill="#fff" opacity=".55"/>
-        <!-- 圆润腮红 -->
-        <ellipse cx="58" cy="146" rx="14" ry="10" fill="#ffb3cf" opacity=".75"/>
-        <ellipse cx="162" cy="146" rx="14" ry="10" fill="#ffb3cf" opacity=".75"/>
-        <!-- 开心上扬的小嘴 -->
-        <path d="M104 150 Q110 144 116 150" stroke="#a087e0" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-      </g>
+      <!-- 身体 -->
+      <path id="body" d="M75 38
+                   C 112 38, 134 70, 134 108
+                   C 134 152, 108 180, 75 180
+                   C 42 180, 16 152, 16 108
+                   C 16 70, 38 38, 75 38 Z"
+            fill="url(#bodyG)" stroke="#dcc8f0" stroke-width="3"/>
+
+      <!-- 腮红 -->
+      <circle cx="42" cy="118" r="12" fill="url(#cheekG)" opacity=".75"/>
+      <circle cx="108" cy="118" r="12" fill="url(#cheekG)" opacity=".75"/>
     </svg>
   </div>
-</div>
 
 <script>
   const pet = document.getElementById('pet');
   const bubble = document.getElementById('bubble');
-  let down=false, sx=0, sy=0, moved=false, startT=0, timer=;
 
-// 供 Kotlin 调用：感知App/情绪时弹字
+  // 供 Android 调用：显示台词气泡（AI 生成的或预设话）
   window.onPetSay = function (txt) {
     say(String(txt));
   };
 
-pet.addEventListener('pointerdown', e=>{
-    down=true; moved=false; startT=Date.now();
-    sx=e.clientX; sy=e.clientY;
-    pet.style.transition='none';
-    pet.setPointerCapture(e.pointerId);
+  function say(txt) {
+    bubble.textContent = txt;
+    bubble.classList.add('show');
+    clearTimeout(say._t);
+    say._t = setTimeout(() => bubble.classList.remove('show'), 2000);
+  }
+
+  // 拖拽状态（由原生 OverlayService 拦截，这里仅同步动画）
+  pet.addEventListener('pointerdown', function () {
+    pet.classList.add('dragging');
   });
-  pet.addEventListener('pointermove', e=>{
-    if(!down) return;
-    const dx=e.clientX-sx, dy=e.clientY-sy;
-    if(Math.abs(dx)+Math.abs(dy)>6) moved=true;
-    pet.style.setProperty('--dx', dx+'px');
-    pet.style.setProperty('--dy', dy+'px');
-  });
-  pet.addEventListener('pointerup', e=>{
-    if(!down) return;
-    down=false;
-    pet.style.transition='transform .7s cubic-bezier(.34,1.56,.64,1)';
-    if(moved){ pet.style.setProperty('--dx','0px'); pet.style.setProperty('--dy','0px'); say('呀……放我下来～'); return; }
-    if(Date.now()-startT<450){ say(['嘿咻～','别戳我啦','要抱抱','嘻嘻~','干嘛戳我呀'], null, true); bob(); }
+  window.addEventListener('pointerup', function () {
+    pet.classList.remove('dragging');
   });
 
-function bob(){
-    pet.style.transition='transform .3s';
-    pet.style.setProperty('--dy','-12px');
-    setTimeout(()=>{pet.style.setProperty('--dy','0px');},300);
-  }
-  function say(text, onDone, random){
-    bubble.textContent = random ? text[Math.floor(Math.random()*text.length)] : text;
-    bubble.style.opacity='1';
-    clearTimeout(timer);
-    timer=setTimeout(()=>{bubble.style.opacity='0'; if(onDone)onDone();},2200);
-  }
+  // 初始欢迎
+  setTimeout(function () { say('我是秋隐哦～'); }, 800);
 </script>
 </body>
 </html>
