@@ -4,193 +4,138 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>秋隐 · 小幽灵</title>
+<title>秋隐 · Q版萌物小幽灵</title>
 <style>
   html, body {
     margin: 0; padding: 0;
     width: 100%; height: 100%;
-    background: transparent !important;
+    background: radial-gradient(circle at 50% 38%, #ffe9f4 0%, #d9c9ff 58%, #b39ae8 100%);
     overflow: hidden;
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
     touch-action: none;
     user-select: none;
   }
+  #stage {
+    position: fixed; inset: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
   #pet {
     position: relative;
-    width: 96px; height: 116px;
-    margin: auto;
+    width: 220px; height: 260px;
     transform: translate(var(--dx,0), var(--dy,0));
+    touch-action: none;
+    transition: transform .7s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: auto;
     cursor: grab;
   }
   #pet:active { cursor: grabbing; }
+  svg { width: 100%; height: 100%; display: block; }
   #bubble {
-    position: absolute; top: -40px; left: 50%;
+    position: absolute; top: -50px; left: 50%;
     transform: translateX(-50%);
-    background: rgba(255,255,255,.92); color:#7a7391;
-    padding: 6px 12px; border-radius: 14px;
-    font-size: 12px; font-weight: 600; white-space: nowrap;
-    box-shadow: 0 3px 10px rgba(60,60,90,.25);
+    background:#fff; color:#8a5fd0;
+    padding: 8px 15px; border-radius: 16px;
+    font-size: 14px; white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
     opacity: 0; pointer-events: none;
-    transition: opacity .2s;
+    transition: opacity .25s;
   }
   #bubble:before {
     content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
-    border:6px solid transparent; border-top-color:rgba(255,255,255,.92); border-bottom-width:0;
+    border:6px solid transparent; border-top-color:#fff; border-bottom-width:0;
   }
-  /* 整体半透明幽灵 + 轻微飘浮 */
-  #ghost { opacity: .85; animation: float 3.6s ease-in-out infinite; }
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-  /* 小手柔摆 */
-  #handL { transform-origin: 30px 112px; animation: waveL 5s ease-in-out infinite; }
-  #handR { transform-origin: 120px 112px; animation: waveR 5s ease-in-out infinite; }
-  @keyframes waveL { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 50%{transform:rotate(0)} }
-  @keyframes waveR { 0%,100%{transform:rotate(0)} 75%{transform:rotate(10deg)} }
-  /* 动作：点头/跳/摇（触发时叠加，结束后恢复飘浮） */
-  #ghost.nod { animation: nod .5s ease; }
-  @keyframes nod { 0%,100%{transform:translateY(0)} 40%{transform:translateY(4px)} 70%{transform:translateY(-2px)} }
-  #ghost.jump { animation: jump .45s cubic-bezier(.34,1.56,.64,1); }
-  @keyframes jump { 0%{transform:translateY(0)} 40%{transform:translateY(-14px)} 70%{transform:translateY(0)} 100%{transform:translateY(0)} }
-  #ghost.shake { animation: shake .4s ease; }
-  @keyframes shake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-5deg)} 75%{transform:rotate(5deg)} }
 </style>
 </head>
 <body>
+
+<div id="stage">
   <div id="pet">
     <div id="bubble"></div>
-    <svg id="ghost" viewBox="0 0 150 180" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="ghostG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#e8eaef"/>
-          <stop offset="55%" stop-color="#cdd1da"/>
-          <stop offset="100%" stop-color="#aeb3c4"/>
-        </linearGradient>
-        <linearGradient id="eyeG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ffe98a"/>
-          <stop offset="100%" stop-color="#ffc93c"/>
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="55%" stop-color="#fdf6ff"/>
+          <stop offset="100%" stop-color="#f3e8ff"/>
         </linearGradient>
       </defs>
 
-      <!-- 身体：半透明灰色团子，底部波浪 -->
-      <path d="M75 30
-               C45 30 26 52 25 82
-               C24 106 27 128 33 146
-               C43 136 51 145 59 149
-               C67 153 71 146 75 149
-               C79 146 83 153 91 149
-               C99 145 107 136 117 146
-               C123 128 126 106 125 82
-               C124 52 105 30 75 30 Z"
-            fill="url(#ghostG)" stroke="#8f94a8" stroke-width="2.5" fill-opacity="0.75" stroke-linejoin="round"/>
+      <!-- 身体：暖白胖圆团子，底部波浪 -->
+      <g id="body">
+        <path d="M110 52
+                 C72 52 44 80 42 118
+                 C41 148 45 176 52 198
+                 C64 186 74 196 84 200
+                 C94 204 103 196 110 200
+                 C117 196 126 204 136 200
+                 C146 196 156 186 168 198
+                 C175 176 179 148 178 118
+                 C176 80 148 52 110 52 Z"
+             fill="url(#ghostG)" stroke="#e6d5ff" stroke-width="3" stroke-linejoin="round"/>
+      </g>
 
-      <!-- 小白手（柔摆） -->
-      <circle id="handL" cx="30" cy="112" r="10" fill="#e8eaef" fill-opacity=".75" stroke="#8f94a8" stroke-width="2"/>
-      <circle id="handR" cx="120" cy="112" r="10" fill="#e8eaef" fill-opacity=".75" stroke="#8f94a8" stroke-width="2"/>
+      <!-- 圆形小白手（身体两侧） -->
+      <g id="hands">
+        <circle cx="38" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
+        <circle cx="182" cy="150" r="15" fill="#fff" stroke="#e6d5ff" stroke-width="3"/>
+      </g>
 
-      <!-- 黄色大眼睛（椭圆，带高光） -->
-      <ellipse id="eyeL" cx="58" cy="86" rx="11" ry="13" fill="url(#eyeG)" stroke="#6b5c2e" stroke-width="1.5"/>
-      <ellipse id="eyeR" cx="92" cy="86" rx="11" ry="13" fill="url(#eyeG)" stroke="#6b5c2e" stroke-width="1.5"/>
-      <ellipse id="pupilL" cx="60" cy="88" rx="5.5" ry="7" fill="#3a3358"/>
-      <ellipse id="pupilR" cx="90" cy="88" rx="5.5" ry="7" fill="#3a3358"/>
-      <circle cx="63" cy="82" r="3.2" fill="#fff"/>
-      <circle cx="93" cy="82" r="2.8" fill="#fff" opacity=".9"/>
-
-      <!-- 腮红（淡紫） -->
-      <ellipse cx="38" cy="104" rx="11" ry="7" fill="#d9c3f0" opacity=".6"/>
-      <ellipse cx="112" cy="104" rx="11" ry="7" fill="#d9c3f0" opacity=".6"/>
-
-      <!-- 嘴巴：开心笑（上弯弧） -->
-      <path id="mouth" d="M64 110 Q75 98 86 110" stroke="#6b5c2e" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+      <!-- 脸部 -->
+      <g id="face">
+        <!-- 大圆萌眼：黑亮带高光 -->
+        <ellipse cx="86" cy="120" rx="14" ry="16" fill="#3a2f5c"/>
+        <ellipse cx="134" cy="120" rx="14" ry="16" fill="#3a2f5c"/>
+        <circle cx="82" cy="114" r="5.5" fill="#fff"/>
+        <circle cx="130" cy="114" r="4.5" fill="#fff" opacity=".9"/>
+        <circle cx="91" cy="128" r="2.5" fill="#fff" opacity=".55"/>
+        <!-- 圆润腮红 -->
+        <ellipse cx="58" cy="146" rx="14" ry="10" fill="#ffb3cf" opacity=".75"/>
+        <ellipse cx="162" cy="146" rx="14" ry="10" fill="#ffb3cf" opacity=".75"/>
+        <!-- 开心上扬的小嘴 -->
+        <path d="M104 150 Q110 144 116 150" stroke="#a087e0" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      </g>
     </svg>
   </div>
+</div>
 
 <script>
   const pet = document.getElementById('pet');
   const bubble = document.getElementById('bubble');
-  const ghost = document.getElementById('ghost');
-  const mouth = document.getElementById('mouth');
-  const eyeL = document.getElementById('eyeL');
-  const eyeR = document.getElementById('eyeR');
-  const pupilL = document.getElementById('pupilL');
-  const pupilR = document.getElementById('pupilR');
-  let timer = null;
+  let down=false, sx=0, sy=0, moved=false, startT=0, timer=;
 
-  // 情绪 -> 表情（只改嘴巴和眼睛大小，不改眼睛位置，避免"飞出去"）
-  const moods = {
-    happy:  { mouth: 'M64 110 Q75 98 86 110', rw:'13', rh:11 },
-    sad:    { mouth: 'M66 116 Q75 122 84 116', rw:'13', rh:10 },
-    angry:  { mouth: 'M68 112 L82 108 L82 114', rw:'8',  rh:7 },
-    sleepy: { mouth: 'M70 114 L80 110 L90 114', rw:'7',  rh:4 }
-  };
+  pet.addEventListener('pointerdown', e=>{
+    down=true; moved=false; startT=Date.now();
+    sx=e.clientX; sy=e.clientY;
+    pet.style.transition='none';
+    pet.setPointerCapture(e.pointerId);
+  });
+  pet.addEventListener('pointermove', e=>{
+    if(!down) return;
+    const dx=e.clientX-sx, dy=e.clientY-sy;
+    if(Math.abs(dx)+Math.abs(dy)>6) moved=true;
+    pet.style.setProperty('--dx', dx+'px');
+    pet.style.setProperty('--dy', dy+'px');
+  });
+  pet.addEventListener('pointerup', e=>{
+    if(!down) return;
+    down=false;
+    pet.style.transition='transform .7s cubic-bezier(.34,1.56,.64,1)';
+    if(moved){ pet.style.setProperty('--dx','0px'); pet.style.setProperty('--dy','0px'); say('呀……放我下来～'); return; }
+    if(Date.now()-startT<450){ say(['嘿咻～','别戳我啦','要抱抱'], null, true); bob(); }
+  });
 
-  function setMood(mood) {
-    const m = moods[mood] || moods.happy;
-    mouth.setAttribute('d', m.mouth);
-    // 只缩放椭圆的高度/宽度（rx,ry），保持圆心不变，不会飞走
-    eyeL.setAttribute('ry', m.rh);
-    eyeR.setAttribute('ry', m.rh);
-    eyeL.setAttribute('rx', m.rw);
-    eyeR.setAttribute('rx', m.rw);
-    if (mood === 'sleepy' || mood === 'angry') {
-      pupilL.style.opacity = '0'; pupilR.style.opacity = '0';
-    } else {
-      pupilL.style.opacity = '1'; pupilR.style.opacity = '1';
-    }
+  function bob(){
+    pet.style.transition='transform .3s';
+    pet.style.setProperty('--dy','-12px');
+    setTimeout(()=>{pet.style.setProperty('--dy','0px');},300);
   }
-
-  // 供 Android 调用说话气泡 + 动作表情
-  window.onPetSay = function (txt, mood) {
-    bubble.textContent = txt;
-    bubble.style.opacity = '1';
+  function say(text, onDone, random){
+    bubble.textContent = random ? text[Math.floor(Math.random()*text.length)] : text;
+    bubble.style.opacity='1';
     clearTimeout(timer);
-    timer = setTimeout(() => { bubble.style.opacity = '0'; setMood('happy'); }, 2300);
-    setMood(mood || 'happy');
-    playAct(mood);
-  };
-
-  // 供 Android 触发动作
-  window.onPetAct = function (act) {
-    playAct(act);
-  };
-
-  function playAct(act) {
-    const reset = () => { ghost.classList.remove('nod','jump','shake'); };
-    reset();
-    if (act === 'double' || act === 'happy') { ghost.classList.add('jump'); setMood('happy'); }
-    else if (act === 'long') { ghost.classList.add('shake'); setMood('sad'); }
-    else if (act === 'combo') { ghost.classList.add('shake'); setMood('angry'); }
-    else if (act === 'sleepy') { setMood('sleepy'); }
-    else { ghost.classList.add('nod'); setMood('happy'); }
-    setTimeout(reset, 600);
-    setTimeout(() => setMood('happy'), 1800);
+    timer=setTimeout(()=>{bubble.style.opacity='0'; if(onDone)onDone();},2200);
   }
-
-  // 本地拖拽 + 轻点弹跳
-  let down = false, sx = 0, sy = 0, moved = false;
-  pet.addEventListener('pointerdown', e => {
-    down = true; moved = false; sx = e.clientX; sy = e.clientY;
-    pet.style.transition = 'none';
-  });
-  pet.addEventListener('pointermove', e => {
-    if (!down) return;
-    const dx = e.clientX - sx, dy = e.clientY - sy;
-    if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
-    pet.style.setProperty('--dx', dx + 'px');
-    pet.style.setProperty('--dy', dy + 'px');
-  });
-  pet.addEventListener('pointerup', () => {
-    if (!down) return;
-    down = false;
-    if (moved) {
-      pet.style.transition = 'transform .5s cubic-bezier(.34,1.56,.64,1)';
-      pet.style.setProperty('--dx', '0px');
-      pet.style.setProperty('--dy', '0px');
-      return;
-    }
-    // 点击：本地小跳一下 + 让 Kotlin 也收到
-    pet.style.transition = 'transform .18s cubic-bezier(.34,1.56,.64,1)';
-    pet.style.setProperty('--dy', '-8px');
-    setTimeout(() => { pet.style.setProperty('--dy', '0px'); }, 180);
-  });
 </script>
 </body>
 </html>
