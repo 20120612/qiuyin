@@ -3,6 +3,7 @@ package com.qiuyin.pet
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Handler
@@ -12,8 +13,13 @@ import android.view.*
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebSettings
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 
+/**
+ * 秋隐悬浮桌宠核心服务
+ * 悬浮窗 + WebView 渲染 + 拖拽 + 手势 + 前台App感知 + 情绪
+ */
 class OverlayService : Service() {
 
     private var windowManager: WindowManager? = null
@@ -36,7 +42,16 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification("秋隐蹲在角落偷偷看你..."))
+        // Android 14 (targetSdk 34) 要求 startForeground 显式传入前台服务类型
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                NOTIFICATION_ID,
+                buildNotification("秋隐蹲在角落偷偷看你..."),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification("秋隐蹲在角落偷偷看你..."))
+        }
         setupOverlay()
         appDetector.start(object : AppDetector.PetCallback {
             override fun onAppChanged(packageName: String, label: String) {
@@ -81,6 +96,8 @@ class OverlayService : Service() {
 
         windowManager?.addView(overlayView, params)
     }
+
+    // === 手势处理 ===
 
     private var initialX = 0
     private var initialY = 0
@@ -163,6 +180,8 @@ class OverlayService : Service() {
         )
     }
 
+    // === 通知栏 ===
+
     private fun buildNotification(text: String): Notification {
         val pendingIntent = PendingIntent.getActivity(
             this, 0,
@@ -190,6 +209,8 @@ class OverlayService : Service() {
                 .createNotificationChannel(channel)
         }
     }
+
+    // === 工具 ===
 
     fun evaluateJavascript(js: String) {
         overlayView?.evaluateJavascript(js, null)
