@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+
 <html lang="zh">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>秋隐</title>
+<title>秋隐 · 小幽灵</title>
 <style>
   html, body {
     margin: 0; padding: 0;
@@ -13,133 +14,125 @@
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
     touch-action: none;
     user-select: none;
-    -webkit-user-select: none;
   }
   #pet {
     position: relative;
-    width: 130px; height: 160px;
+    width: 150px; height: 180px;
     margin: auto;
     transform: translate(var(--dx,0), var(--dy,0));
-    transition: transform .8s cubic-bezier(.34,1.56,.64,1);
     cursor: grab;
   }
-  #pet.dragging { transition: none; cursor: grabbing; }
-  #pet svg { width: 100%; height: 100%; display: block; }
-
-  /* 幽灵飘动动画 */
-  #ghost {
-    animation: float 3s ease-in-out infinite;
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-
+  #pet:active { cursor: grabbing; }
   #bubble {
-    position: absolute;
-    top: -42px; left: 50%;
-    transform: translateX(-50%) scale(.6);
-    background: rgba(255,255,255,.95);
-    color: #7b6bb8;
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    opacity: 0;
-    transition: all .25s ease;
-    box-shadow: 0 4px 14px rgba(80,60,120,.35);
-    pointer-events: none;
+    position: absolute; top: -46px; left: 50%;
+    transform: translateX(-50%);
+    background:#fff; color:#8a5fd0;
+    padding: 7px 14px; border-radius: 15px;
+    font-size: 14px; font-weight: 600; white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(80,60,120,.3);
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
   }
-  #bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
+  #bubble:before {
+    content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
+    border:6px solid transparent; border-top-color:#fff; border-bottom-width:0;
+  }
+  /* 呼吸飘动 + 点击弹跳都由 JS 控制，身体整体微浮动 */
+  #ghost { animation: float 3.2s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
 </style>
 </head>
 <body>
   <div id="pet">
-    <div id="bubble">嗨，我是秋隐✨</div>
-    <svg viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
+    <div id="bubble"></div>
+    <svg id="ghost" viewBox="0 0 150 180" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="ghostG" cx="50%" cy="30%" r="85%">
+        <linearGradient id="ghostG" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#ffffff"/>
-          <stop offset="70%" stop-color="#f3f0ff"/>
-          <stop offset="100%" stop-color="#ded5ff"/>
-        </radialGradient>
-        <linearGradient id="cheekG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ffc2d1"/>
-          <stop offset="100%" stop-color="#ffa3b8"/>
+          <stop offset="55%" stop-color="#fdf5ff"/>
+          <stop offset="100%" stop-color="#f0e6ff"/>
         </linearGradient>
       </defs>
 
-      <!-- 幽灵身体（上圆下波浪） -->
-      <path id="ghost" d="M80 18
-                C 118 18, 138 48, 138 88
-                C 138 128, 138 158, 138 170
-                C 128 158, 120 160, 110 170
-                C 100 160, 90 160, 80 170
-                C 70 160, 60 160, 50 170
-                C 42 160, 34 158, 24 170
-                C 24 158, 22 128, 22 88
-                C 22 48, 42 18, 80 18 Z"
-            fill="url(#ghostG)" stroke="#cfc3f0" stroke-width="3"/>
+      <!-- 身体：胖胖团子，底部波浪 -->
+      <path d="M75 30
+               C45 30 26 52 25 82
+               C24 106 27 128 33 146
+               C43 136 51 145 59 149
+               C67 153 71 146 75 149
+               C79 146 83 153 91 149
+               C99 145 107 136 117 146
+               C123 128 126 106 125 82
+               C124 52 105 30 75 30 Z"
+            fill="url(#ghostG)" stroke="#e2d1f7" stroke-width="3" stroke-linejoin="round"/>
 
-      <!-- 两只眼睛 -->
-      <ellipse cx="62" cy="86" rx="11" ry="14" fill="#3a3358"/>
-      <ellipse cx="98" cy="86" rx="11" ry="14" fill="#3a3358"/>
-      <circle cx="66" cy="80" r="4" fill="#ffffff"/>
-      <circle cx="102" cy="80" r="4" fill="#ffffff"/>
+      <!-- 小白手 -->
+      <circle cx="28" cy="110" r="11" fill="#fff" stroke="#e2d1f7" stroke-width="2.5"/>
+      <circle cx="122" cy="110" r="11" fill="#fff" stroke="#e2d1f7" stroke-width="2.5"/>
 
-      <!-- 小嘴巴（惊讶可爱） -->
-      <ellipse cx="80" cy="108" rx="7" ry="8" fill="#3a3358"/>
+      <!-- 大萌眼（带高光） -->
+      <ellipse cx="58" cy="86" rx="12" ry="14" fill="#3a2f5c"/>
+      <ellipse cx="92" cy="86" rx="12" ry="14" fill="#3a2f5c"/>
+      <circle cx="54" cy="80" r="5" fill="#fff"/>
+      <circle cx="88" cy="80" r="4" fill="#fff" opacity=".9"/>
+      <circle cx="62" cy="92" r="2.2" fill="#fff" opacity=".55"/>
 
-      <!-- 腮红 -->
-      <circle cx="48" cy="104" r="10" fill="url(#cheekG)" opacity=".8"/>
-      <circle cx="112" cy="104" r="10" fill="url(#cheekG)" opacity=".8"/>
+      <!-- 圆润腮红 -->
+      <ellipse cx="38" cy="104" rx="12" ry="8" fill="#ffb3cf" opacity=".75"/>
+      <ellipse cx="112" cy="104" rx="12" ry="8" fill="#ffb3cf" opacity=".75"/>
 
-      <!-- 两只小手 -->
-      <ellipse cx="28" cy="130" rx="11" ry="9" fill="url(#ghostG)" stroke="#cfc3f0" stroke-width="2" transform="rotate(-20 28 130)"/>
-      <ellipse cx="132" cy="130" rx="11" ry="9" fill="url(#ghostG)" stroke="#cfc3f0" stroke-width="2" transform="rotate(20 132 130)"/>
+      <!-- 开心上扬小嘴 -->
+      <path d="M68 106 Q75 100 82 106" stroke="#a087e0" stroke-width="3.4" fill="none" stroke-linecap="round"/>
     </svg>
   </div>
 
 <script>
   const pet = document.getElementById('pet');
   const bubble = document.getElementById('bubble');
+  let timer = null;
 
-  const lines = [
-    '飘过来啦～',
-    '别戳我呀',
-    '哇～要被抱抱',
-    '嘻嘻～',
-    '呜哇！',
-    '我是小幽灵秋隐～',
-    '在这里哟~'
-  ];
-
-  function say(txt) {
-    bubble.textContent = txt;
-    bubble.classList.add('show');
-    clearTimeout(say._t);
-    say._t = setTimeout(() => bubble.classList.remove('show'), 2000);
-  }
-
-  // 供 Android 外部调用
+  // 供 Android 调用显示说话气泡（Kotlin -> onPetSay）
   window.onPetSay = function (txt) {
-    say(txt);
+    bubble.textContent = txt;
+    bubble.style.opacity = '1';
+    clearTimeout(timer);
+    timer = setTimeout(() => { bubble.style.opacity = '0'; }, 2200);
+    // 说话时轻轻弹跳一下
+    pet.style.transition = 'transform .18s cubic-bezier(.34,1.56,.64,1)';
+    pet.style.setProperty('--dy', '-14px');
+    setTimeout(() => {
+      pet.style.setProperty('--dy', '0px');
+    }, 180);
   };
 
-  // 仅供页面内部点击测试
-  pet.addEventListener('pointerdown', function (e) {
-    pet.classList.add('dragging');
+  // 点击宠物本体时的本地动画（拖拽自动归位 + 轻弹）
+  let down = false, sx = 0, sy = 0, moved = false;
+  pet.addEventListener('pointerdown', e => {
+    down = true; moved = false; sx = e.clientX; sy = e.clientY;
+    pet.style.transition = 'none';
+    pet.setPointerCapture(e.pointerId);
   });
-  window.addEventListener('pointerup', function () {
-    pet.classList.remove('dragging');
+  pet.addEventListener('pointermove', e => {
+    if (!down) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+    pet.style.setProperty('--dx', dx + 'px');
+    pet.style.setProperty('--dy', dy + 'px');
   });
-  pet.addEventListener('dblclick', function () {
-    say('啊！好痒呀💕');
+  pet.addEventListener('pointerup', () => {
+    if (!down) return;
+    down = false;
+    if (moved) {
+      pet.style.transition = 'transform .5s cubic-bezier(.34,1.56,.64,1)';
+      pet.style.setProperty('--dx', '0px');
+      pet.style.setProperty('--dy', '0px');
+      return;
+    }
+    // 点击弹跳
+    pet.style.transition = 'transform .18s cubic-bezier(.34,1.56,.64,1)';
+    pet.style.setProperty('--dy', '-14px');
+    setTimeout(() => { pet.style.setProperty('--dy', '0px'); }, 180);
   });
-
-  // 初始欢迎
-  setTimeout(function () { say('我是小幽灵秋隐哦～'); }, 800);
 </script>
 </body>
 </html>
