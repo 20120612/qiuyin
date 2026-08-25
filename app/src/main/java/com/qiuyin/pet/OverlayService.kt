@@ -3,6 +3,7 @@ package com.qiuyin.pet
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.os.Build
@@ -41,18 +42,44 @@ class OverlayService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        // 检查通知权限（Android 13+ 必须运行时授予，否则 startForeground 会崩溃）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "请先在设置里允许秋隐的通知权限", Toast.LENGTH_LONG).show()
+            stopSelf()
+            return
+        }
         createNotificationChannel()
         // Android 14 (targetSdk 34) 要求 startForeground 显式传入前台服务类型
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(
-                NOTIFICATION_ID,
-                buildNotification("秋隐蹲在角落偷偷看你..."),
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-            )
-        } else {
-            startForeground(NOTIFICATION_ID, buildNotification("秋隐蹲在角落偷偷看你..."))
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    buildNotification("秋隐蹲在角落偷偷看你..."),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, buildNotification("秋隐蹲在角落偷偷看你..."))
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "启动失败: ${e.message}", Toast.LENGTH_LONG).show()
+            stopSelf()
+            return
         }
-        setupOverlay()
+        // 悬浮窗权限检查，未授予则退出
+        if (!android.provider.Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, "请先在设置里打开悬浮窗权限", Toast.LENGTH_LONG).show()
+            stopSelf()
+            return
+        }
+        try {
+            setupOverlay()
+        } catch (e: Exception) {
+            Toast.makeText(this, "悬浮窗创建失败: ${e.message}", Toast.LENGTH_LONG).show()
+            stopSelf()
+            return
+        }
+        Toast.makeText(this, "秋隐已启动!", Toast.LENGTH_SHORT).show()
         appDetector.start(object : AppDetector.PetCallback {
             override fun onAppChanged(packageName: String, label: String) {
                 petEngine.handleAppSwitch(label)
